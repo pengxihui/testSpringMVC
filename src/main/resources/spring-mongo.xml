@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:mvc="http://www.springframework.org/schema/mvc" xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:cache="http://www.springframework.org/schema/cache"
+	xmlns:mongo="http://www.springframework.org/schema/data/mongo"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+    http://www.springframework.org/schema/beans/spring-beans-4.0.xsd  
+    http://www.springframework.org/schema/data/mongo   
+    http://www.springframework.org/schema/data/mongo/spring-mongo-1.8.xsd
+    http://www.springframework.org/schema/context  
+    http://www.springframework.org/schema/context/spring-context-4.0.xsd  
+    http://www.springframework.org/schema/aop 
+    http://www.springframework.org/schema/aop/spring-aop-4.0.xsd 
+    http://www.springframework.org/schema/mvc   
+    http://www.springframework.org/schema/mvc/spring-mvc-4.0.xsd">
+
+	<!-- 加载mongodb的属性配置文件 -->
+	<context:property-placeholder location="classpath:mongodb.properties" />
+	<!-- 定义mongo对象，对应的是mongodb官方jar包中的Mongo，replica-set设置集群副本的ip地址和端口 replica-set="${mongo.hostport}" -->
+	<!-- 1.7以后的版本不支持mongo,支持mongo-client,options为client-options -->
+	<!-- Usage of 'UserCredentials' with 'MongoClient' is no longer supported -->
+	<!-- 配置mongodb连接池 ,创建mongoClient实例 -->
+	<!--credentials="mongodb://${mongo.user}:${mongo.pwd}@${mongo.host}:${mongo.port}/${mongo 
+		.defaultDbName}"为什么不起作用 如果需要验证,mongo-client需要加这句: credentials="${mongo.user}:${mongo.pwd}@${mongo.defaultDbName}" -->
+	<mongo:mongo-client id="mongo" host="${mongo.host}"
+		port="${mongo.port}" credentials="${mongo.username}:${mongo.password}@${mongo.dbname}">
+		<mongo:client-options connections-per-host="${mongo.connectionsPerHost}"
+			threads-allowed-to-block-for-connection-multiplier="${mongo.threadsAllowedToBlockForConnectionMultiplier}"
+			connect-timeout="${mongo.connectTimeout}" max-wait-time="${mongo.maxWaitTime}"
+			socket-keep-alive="${mongo.socketKeepAlive}" socket-timeout="${mongo.socketTimeout}" />
+	</mongo:mongo-client>
+	<!--配置方式1： mongo的工厂，通过它来取得mongo实例，dbname为mongodb的数据库名，没有的话会自动创建数据库 -->
+	<!-- <bean id="mongoDbFactory" class="org.springframework.data.mongodb.core.SimpleMongoDbFactory"> 
+		<constructor-arg ref="mongo"/> <constructor-arg value="${mongo.dbname}"/> 
+		</bean> -->
+	<!-- 配置方式2： -->
+	<mongo:db-factory id="mongoDbFactory" mongo-ref="mongo"
+		dbname="${mongo.dbname}" />
+
+	<!--配置方式1： 连接数据库 -->
+	<!--<bean id="mongoTemplate" class="org.springframework.data.mongodb.core.MongoTemplate"> 
+		<constructor-arg name = "mongo" ref="mongo"/> <constructor-arg name="databaseName" 
+		value="pxh"/> </bean> -->
+
+	<!-- 配置方式2： -->
+	<mongo:template id="mongoTemplate" db-factory-ref="mongoDbFactory"
+		write-concern="NORMAL" />
+</beans>

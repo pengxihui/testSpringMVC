@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "mybatis-3-mapper.dtd" >
+<mapper namespace="com.mysql.mapper.RoleMapper" >
+  <resultMap id="BaseResultMap" type="role" >
+    <id column="role_id" property="roleId" jdbcType="VARCHAR" />
+    <result column="role_name" property="roleName" jdbcType="VARCHAR" />
+    <result column="role_state" property="roleState" jdbcType="BIT" />
+    <result column="role_desc" property="roleDesc" jdbcType="VARCHAR" />
+    <result column="state" property="state" jdbcType="VARCHAR" />
+  </resultMap>
+  
+  <!-- sql片段 -->
+  <sql id="Base_Column_List" >
+    role_id, role_name, role_state, role_desc
+  </sql>
+  
+  <!-- 通过id查询 -->
+  <select id="selectById" resultMap="BaseResultMap" parameterType="java.lang.String" >
+    select 
+    <include refid="Base_Column_List" />
+    from `role`
+    where role_id = #{roleId,jdbcType=VARCHAR}
+  </select>
+  
+  <!-- 查询全部 -->
+  <select id="selectAll" resultMap="BaseResultMap">
+     SELECT
+	 <include refid="Base_Column_List"/>, 
+	 (case
+		when r.role_state = '1' then
+			'禁用'
+		else
+			'启用'
+	  end
+	 ) as state
+        from role r
+  </select>
+  
+  <!-- 通过查询条件查询 -->
+  <select id="selectByConditionListPage" resultMap="BaseResultMap" parameterType="role" >
+    select 
+    <include refid="Base_Column_List" />
+    from `role`
+    where  1=1
+      <if test="roleName != null">
+      and  role_name like concat('%',#{roleName,jdbcType=VARCHAR},'%')
+      </if>
+      <if test="roleDesc != null">
+      and  role_desc like concat('%',#{roleDesc,jdbcType=VARCHAR},'%')   
+      </if>
+  </select>
+  
+  <!-- 通过id删除 -->
+  <delete id="deleteById" parameterType="java.lang.String" >
+    delete from `role`
+    where role_id = #{roleId,jdbcType=VARCHAR}
+  </delete>
+  
+  <!-- 通过ids删除 -->
+  <delete id="deleteByIds" parameterType="java.lang.String">
+    delete from `role` where role_id in
+    <foreach item="roleId" collection="array" open="(" separator="," close=")">
+     #{roleId}
+    </foreach>
+  </delete>
+
+  <!-- 新增 -->
+  <insert id="insert" parameterType="role" >
+    insert into `role`
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      role_id,
+      role_name,
+      role_state,
+      role_desc,
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      #{roleId,jdbcType=VARCHAR},
+      #{roleName,jdbcType=VARCHAR},
+      #{roleState,jdbcType=BIT},
+      #{roleDesc,jdbcType=VARCHAR},
+    </trim>
+  </insert>
+  
+  <!-- 通过id更新 -->
+  <update id="updateById" parameterType="role" >
+    update `role`
+    <set >
+      <if test="roleName != null" >
+        role_name = #{roleName,jdbcType=VARCHAR},
+      </if>
+      <if test="roleState != null" >
+        role_state = #{roleState,jdbcType=BIT},
+      </if>
+      <if test="roleDesc != null" >
+        role_desc = #{roleDesc,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where role_id = #{roleId,jdbcType=VARCHAR}
+  </update>
+</mapper>
